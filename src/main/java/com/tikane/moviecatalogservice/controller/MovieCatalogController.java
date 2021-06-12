@@ -3,6 +3,7 @@ package com.tikane.moviecatalogservice.controller;
 import com.tikane.moviecatalogservice.model.CatelogItem;
 import com.tikane.moviecatalogservice.model.Movie;
 import com.tikane.moviecatalogservice.model.Rating;
+import com.tikane.moviecatalogservice.model.UserRating;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,13 +27,10 @@ public class MovieCatalogController {
     @GetMapping("/{userId}")
     public List<CatelogItem> getCatalog(@PathVariable("userId") String userId){
 
-        List<Rating> ratings = Arrays.asList(
-                new Rating("1234",4),
-                new Rating("3456",2)
-        );
+        UserRating ratings = restTemplate.getForObject("http://rating-data-service/ratings/users/" + userId, UserRating.class);
 
-      return  ratings.stream().map(rating -> {
-          Movie movie = restTemplate.getForObject("http://localhost:3030/movies/" + rating.getMovieId(), Movie.class);
+      return  ratings.getUserRating().stream().map(rating -> {
+          Movie movie = restTemplate.getForObject("http://movie-info-service/movies/" + rating.getMovieId(), Movie.class);
           return new CatelogItem(movie.getName(), "action", rating.getRatings());
       }).collect(Collectors.toList());
     }
